@@ -3,11 +3,12 @@ import pandas as pd
 import numpy as np
 import itertools
 
-x=IEEECDFParser('Testcdf.txt')
+x=IEEECDFParser('ejcdf.txt')
 Gn=x.generate_networkx_graph()
 
 nodes=Gn.node
 dnodes=Gn.nodes(data=True)
+
 
 dim=len(nodes)
 Y=np.zeros((dim,dim),dtype=np.complex)
@@ -20,7 +21,6 @@ for node in nodes:
 
 for tnode in dnodes:
     dfY.loc[tnode[0],tnode[0]]=np.complex(tnode[1]["attr_dict"]["shunt_g"],tnode[1]["attr_dict"]["shunt_b"])-dfY.loc[tnode[0],:].sum()
-
 
 dfYmod=dfY.apply(np.abs)
 dfYang=dfY.apply(np.angle)
@@ -63,6 +63,7 @@ def dQdV(n,m,dfV):
 
 #TODO: Cambia con condiciones de contorno?
 dfV=pd.Series(np.concatenate([np.ones(dim),np.zeros(dim)],0),index=pd.MultiIndex.from_product([ ["V","d"], nodes ],names=["vCoord","bus"]))
+
 for tnode in dnodes:
     if tnode[1]["attr_dict"]["bus_type"] in [2,3]:
         dfV[("V",tnode[0])] = tnode[1]["attr_dict"]["desired_volts"]
@@ -132,10 +133,14 @@ def SRes(dfV):
             dfDP.loc[i]+=P(i[1],dfV)
     return dfDP
 
+dfV
 
+Jac(dfV)
 
 
 dfRes=SRes(dfV)
+
+dfRes
 while np.abs(dfRes.max()) > 1E-4:
     dfJ=Jac(dfV) #Jacobiano
     dfIJ=pd.DataFrame(np.linalg.inv(dfJ.values),dfJ.columns,dfJ.index) #Inversa

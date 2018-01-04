@@ -17,6 +17,10 @@ Yang=np.angle(Y)
 
 
 
+Ymod
+
+
+Yang
 
 def P(n,V,d):
     return np.sum ( V[n] * np.multiply( np.multiply(V,Ymod[n,:]) , np.cos(d + Yang[n,:] - d[n]) ))
@@ -71,6 +75,8 @@ V[0]=1.05
 V[1]=1
 V[2]=1.04
 
+M
+
 
 #Residuos (RP1, RP2, RQ1)
 def R(V,d):
@@ -87,6 +93,11 @@ def R(V,d):
 #print J(V,d)
 
 Res=R(V,d)
+
+Res
+
+J(V,d)
+
 while np.abs(np.max(Res)) > 1E-4:
     D=np.linalg.inv( J(V,d)) * Res
     V[1]+=D[2]
