@@ -9,7 +9,6 @@ Gn=x.generate_networkx_graph()
 nodes=Gn.node
 dnodes=Gn.nodes(data=True)
 
-
 dim=len(nodes)
 Y=np.zeros((dim,dim),dtype=np.complex)
 dfY=pd.DataFrame(Y,columns=pd.Index(nodes,name="bus"),index=pd.Index(nodes,name="bus"))
@@ -26,47 +25,47 @@ dfYmod=dfY.apply(np.abs)
 dfYang=dfY.apply(np.angle)
 
 def P(n,dfV):
-    return   (dfV.loc[("V",n)] * dfV.loc["V"] * dfYmod.loc[n,:] * (dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.cos) ).sum()
+    return   (dfV.loc[("v",n)] * dfV.loc["v"] * dfYmod.loc[n,:] * (dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.cos) ).sum()
 
 def Q(n,dfV):
-    return - (dfV.loc[("V",n)] * dfV.loc["V"] * dfYmod.loc[n,:] * (dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.sin) ).sum()
+    return - (dfV.loc[("v",n)] * dfV.loc["v"] * dfYmod.loc[n,:] * (dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.sin) ).sum()
 
 def dPdd(n,m,dfV):
     if n == m:
-        return ( dfV.loc[("V",n)] * dfV.loc["V"] * dfYmod.loc[n,:] * ( dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.sin) ).drop(n).sum()
+        return ( dfV.loc[("v",n)] * dfV.loc["v"] * dfYmod.loc[n,:] * ( dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.sin) ).drop(n).sum()
     else:
-        return - dfV.loc[("V",n)] * dfV.loc[("V",m)] * dfYmod.loc[n,m] * np.sin(dfV.loc[("d",m)] + dfYang.loc[n,m] - dfV.loc[("d",n)])
+        return - dfV.loc[("v",n)] * dfV.loc[("v",m)] * dfYmod.loc[n,m] * np.sin(dfV.loc[("d",m)] + dfYang.loc[n,m] - dfV.loc[("d",n)])
 
 def dQdd(n,m,dfV):
     if n == m:
-        return ( dfV.loc[("V",n)] * dfV.loc["V"] * dfYmod.loc[n,:] * ( dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.cos) ).drop(n).sum()
+        return ( dfV.loc[("v",n)] * dfV.loc["v"] * dfYmod.loc[n,:] * ( dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.cos) ).drop(n).sum()
     else:
-        return - dfV.loc[("V",n)] * dfV.loc[("V",m)] * dfYmod.loc[n,m] * np.cos(dfV.loc[("d",m)] + dfYang.loc[n,m] - dfV.loc[("d",n)])
+        return - dfV.loc[("v",n)] * dfV.loc[("v",m)] * dfYmod.loc[n,m] * np.cos(dfV.loc[("d",m)] + dfYang.loc[n,m] - dfV.loc[("d",n)])
 
 ######## Hasta aca llegue
 
 def dPdV(n,m,dfV):
     if n == m:
-        return ( dfV.loc["V"] * dfYmod.loc[n,:] * ( dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.cos) ).sum() + dfV.loc[("V",n)]* dfYmod.loc[n,n] * np.cos(dfYang.loc[n,n])
+        return ( dfV.loc["v"] * dfYmod.loc[n,:] * ( dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.cos) ).sum() + dfV.loc[("v",n)]* dfYmod.loc[n,n] * np.cos(dfYang.loc[n,n])
     else:
-        return dfV.loc[("V",n)] * dfYmod.loc[n,m] * np.cos( dfV.loc[("d",m)] + dfYang.loc[n,m] - dfV.loc[("d",n)])
+        return dfV.loc[("v",n)] * dfYmod.loc[n,m] * np.cos( dfV.loc[("d",m)] + dfYang.loc[n,m] - dfV.loc[("d",n)])
 
 def dQdV(n,m,dfV):
     if n == m:
-       return  - ( dfV.loc["V"] * dfYmod.loc[n,:] * ( dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.sin) ).sum() - dfV.loc[("V",n)]* dfYmod.loc[n,n] * np.sin(dfYang.loc[n,n])
+       return  - ( dfV.loc["v"] * dfYmod.loc[n,:] * ( dfV.loc["d"] + dfYang.loc[n,:] - dfV.loc[("d",n)]).apply(np.sin) ).sum() - dfV.loc[("v",n)]* dfYmod.loc[n,n] * np.sin(dfYang.loc[n,n])
     else:
-       return - dfV.loc[("V",n)] * dfYmod.loc[n,m] * np.sin( dfV.loc[("d",m)] + dfYang.loc[n,m] - dfV.loc[("d",n)])
+       return - dfV.loc[("v",n)] * dfYmod.loc[n,m] * np.sin( dfV.loc[("d",m)] + dfYang.loc[n,m] - dfV.loc[("d",n)])
 
 
 
 
 
 #TODO: Cambia con condiciones de contorno?
-dfV=pd.Series(np.concatenate([np.ones(dim),np.zeros(dim)],0),index=pd.MultiIndex.from_product([ ["V","d"], nodes ],names=["vCoord","bus"]))
+dfV=pd.Series(np.concatenate([np.ones(dim),np.zeros(dim)],0),index=pd.MultiIndex.from_product([ ["v","d"], nodes ],names=["vCoord","bus"]))
 
 for tnode in dnodes:
     if tnode[1]["attr_dict"]["bus_type"] in [2,3]:
-        dfV[("V",tnode[0])] = tnode[1]["attr_dict"]["desired_volts"]
+        dfV[("v",tnode[0])] = tnode[1]["attr_dict"]["desired_volts"]
 
 #agrupo buses por tipo, (PV,PQ,swing)
 bus_group=[[] for _ in range(4)]
@@ -77,7 +76,7 @@ if len(bus_group[3])!=1:
     raise ValueError('Only one swing bus admitted')
 
 
-#dfV.loc["V"].as_matrix()
+#dfV.loc["v"].as_matrix()
 #dimension
 #
 # |DP|   |J1 J2| |Dd|
@@ -91,11 +90,11 @@ PV_buses=bus_group[2]
 
 
 
-J_index={"cols": { "d": dict(PQ_buses+PV_buses) , "V": dict(PQ_buses) } ,
+J_index={"cols": { "d": dict(PQ_buses+PV_buses) , "v": dict(PQ_buses) } ,
          "rows": { "P": dict(PQ_buses+PV_buses) , "Q": dict(PQ_buses) }
         }
 
-J_colindex=pd.MultiIndex.from_product([ ["d"],J_index["cols"]["d"].keys() ],names=["vCoord","bus"]).union(pd.MultiIndex.from_product([ ["V"],J_index["cols"]["V"].keys() ],names=["vCoord","bus"]))
+J_colindex=pd.MultiIndex.from_product([ ["d"],J_index["cols"]["d"].keys() ],names=["vCoord","bus"]).union(pd.MultiIndex.from_product([ ["v"],J_index["cols"]["v"].keys() ],names=["vCoord","bus"]))
 J_rowindex=pd.MultiIndex.from_product([ ["P"],J_index["rows"]["P"].keys() ],names=["sCoord","bus"]).union(pd.MultiIndex.from_product([ ["Q"],J_index["rows"]["Q"].keys() ],names=["sCoord","bus"]))
 J_matrix=np.matrix(np.zeros(( len(J_rowindex),len(J_colindex)) ))
 
@@ -105,14 +104,13 @@ def Jac(dfV):
         for j in dfJ1.columns:
             if   i[0]=="P" and j[0]=="d":
                 dfJ1.loc[i,j] = dPdd(i[1],j[1],dfV)
-            elif i[0]=="P" and j[0]=="V":
+            elif i[0]=="P" and j[0]=="v":
                 dfJ1.loc[i,j] = dPdV(i[1],j[1],dfV)
             elif i[0]=="Q" and j[0]=="d":
                 dfJ1.loc[i,j] = dQdd(i[1],j[1],dfV)
-            elif i[0]=="Q" and j[0]=="V":
-                dfJ1.loc[i,j] = dQdd(i[1],j[1],dfV)
+            elif i[0]=="Q" and j[0]=="v":
+                dfJ1.loc[i,j] = dQdV(i[1],j[1],dfV)
     return dfJ1
-
 
 
 
@@ -122,15 +120,17 @@ for i in SSched.index:
       SSched.loc[i]=dnodes[i[1]]["attr_dict"]["gen_p"]-dnodes[i[1]]["attr_dict"]["load_p"]
     elif i[0]=="Q":
       SSched.loc[i]=dnodes[i[1]]["attr_dict"]["gen_q"]-dnodes[i[1]]["attr_dict"]["load_q"]
-
+SSched/=Gn.graph["mva_base"]
+SSched
 #Calculo de residuos
 def SRes(dfV):
     dfDP = SSched.copy()
     for i in dfDP.index:
         if i[0]=="P":
-            dfDP.loc[i]+=P(i[1],dfV)
+            dfDP.loc[i]-=P(i[1],dfV)
         elif i[0]=="Q":
-            dfDP.loc[i]+=P(i[1],dfV)
+            dfDP.loc[i]-=Q(i[1],dfV)
+
     return dfDP
 
 dfV
@@ -141,10 +141,16 @@ Jac(dfV)
 dfRes=SRes(dfV)
 
 dfRes
+
+
+
+
+
 while np.abs(dfRes.max()) > 1E-4:
     dfJ=Jac(dfV) #Jacobiano
     dfIJ=pd.DataFrame(np.linalg.inv(dfJ.values),dfJ.columns,dfJ.index) #Inversa
-    dfNewV = dfIJ.dot(dfRes) # Producto por residuos
-    dfV.update(dfNewV) #Actualizo tensiones
+    dfDV = dfIJ.dot(dfRes) # Producto por residuos
+    dfV = dfV.add(dfDV,fill_value=0) #Actualizo tensiones
     dfRes=SRes(dfV)  #Recalculo residuos
-    print dfV
+
+print dfV
